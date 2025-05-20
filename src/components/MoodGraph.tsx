@@ -6,9 +6,10 @@ import { useTheme } from 'next-themes';
 
 interface MoodGraphProps {
   data: MoodEntry[];
+  height?: number | string;
 }
 
-const MoodGraph: React.FC<MoodGraphProps> = ({ data }) => {
+const MoodGraph: React.FC<MoodGraphProps> = ({ data, height = "80%" }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   
@@ -21,7 +22,7 @@ const MoodGraph: React.FC<MoodGraphProps> = ({ data }) => {
   return (
     <div className="w-full h-64 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-medium mb-4">Your Mood History</h3>
-      <ResponsiveContainer width="100%" height="80%">
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#333" : "#f0f0f0"} />
           <XAxis 
