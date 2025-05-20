@@ -5,9 +5,10 @@ import { Smile, Frown, Meh } from 'lucide-react';
 interface MoodEmojiProps {
   score: number;
   size?: number;
+  className?: string;
 }
 
-const MoodEmoji: React.FC<MoodEmojiProps> = ({ score, size = 32 }) => {
+const MoodEmoji: React.FC<MoodEmojiProps> = ({ score, size = 32, className = '' }) => {
   const getMoodInfo = (score: number) => {
     if (score >= 8) {
       return { icon: <Smile size={size} className="text-mood-great" />, label: 'Great' };
@@ -25,11 +26,11 @@ const MoodEmoji: React.FC<MoodEmojiProps> = ({ score, size = 32 }) => {
   const moodInfo = getMoodInfo(score);
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="animate-pulse-light">
+    <div className={`flex flex-col items-center gap-1 ${className}`}>
+      <div className="transition-all duration-300 hover:scale-110">
         {moodInfo.icon}
       </div>
-      <span className="text-sm font-medium dark:text-gray-200">{moodInfo.label}</span>
+      <span className="text-sm font-medium text-primary dark:text-primary-foreground">{moodInfo.label}</span>
     </div>
   );
 };
