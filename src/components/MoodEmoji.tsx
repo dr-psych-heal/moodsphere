@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Smile, Frown, Meh, Heart } from 'lucide-react';
+import { Smile, Frown, Meh } from 'lucide-react';
 
 interface MoodEmojiProps {
   score: number;
@@ -29,7 +29,7 @@ const MoodEmoji: React.FC<MoodEmojiProps> = ({ score, size = 32 }) => {
       <div className="animate-pulse-light">
         {moodInfo.icon}
       </div>
-      <span className="text-sm font-medium">{moodInfo.label}</span>
+      <span className="text-sm font-medium dark:text-gray-200">{moodInfo.label}</span>
     </div>
   );
 };

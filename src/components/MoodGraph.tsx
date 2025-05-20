@@ -2,12 +2,16 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { MoodEntry } from '../types';
+import { useTheme } from 'next-themes';
 
 interface MoodGraphProps {
   data: MoodEntry[];
 }
 
 const MoodGraph: React.FC<MoodGraphProps> = ({ data }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  
   // Format data for the chart
   const chartData = data.map(entry => ({
     date: new Date(entry.date).toLocaleDateString(),
@@ -15,20 +19,36 @@ const MoodGraph: React.FC<MoodGraphProps> = ({ data }) => {
   }));
 
   return (
-    <div className="w-full h-64 bg-white p-4 rounded-lg shadow-md">
+    <div className="w-full h-64 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
       <h3 className="text-lg font-medium mb-4">Your Mood History</h3>
       <ResponsiveContainer width="100%" height="80%">
         <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="date" stroke="#888" fontSize={12} tickLine={false} />
-          <YAxis domain={[0, 10]} stroke="#888" fontSize={12} tickLine={false} />
-          <Tooltip />
+          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#333" : "#f0f0f0"} />
+          <XAxis 
+            dataKey="date" 
+            stroke={isDark ? "#aaa" : "#888"} 
+            fontSize={12} 
+            tickLine={false} 
+          />
+          <YAxis 
+            domain={[0, 10]} 
+            stroke={isDark ? "#aaa" : "#888"} 
+            fontSize={12} 
+            tickLine={false} 
+          />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: isDark ? "#333" : "#fff",
+              color: isDark ? "#fff" : "#333",
+              borderColor: isDark ? "#555" : "#ddd"
+            }}
+          />
           <Line 
             type="monotone" 
             dataKey="score" 
             stroke="#9b87f5" 
             strokeWidth={2}
-            dot={{ stroke: '#7E69AB', strokeWidth: 2, r: 4, fill: '#fff' }}
+            dot={{ stroke: '#7E69AB', strokeWidth: 2, r: 4, fill: isDark ? '#333' : '#fff' }}
             activeDot={{ r: 6, stroke: '#9b87f5', strokeWidth: 2 }}
           />
         </LineChart>

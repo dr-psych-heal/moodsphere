@@ -2,20 +2,27 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { useTheme } from 'next-themes';
 import MoodQuestionnaire from '../components/MoodQuestionnaire';
 import MoodGraph from '../components/MoodGraph';
 import ReportGenerator from '../components/ReportGenerator';
 import { MoodEntry } from '../types';
+import { Moon, Sun } from 'lucide-react';
 
 const Index = () => {
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([]);
   const [activeTab, setActiveTab] = useState("track");
+  const { setTheme, theme } = useTheme();
   
   // Load data from localStorage on initial render
   useEffect(() => {
     const savedEntries = localStorage.getItem('moodEntries');
     if (savedEntries) {
       setMoodEntries(JSON.parse(savedEntries));
+    } else {
+      // Generate sample data if no entries exist
+      generateSampleData();
     }
   }, []);
   
@@ -55,25 +62,47 @@ const Index = () => {
     }
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-accent to-white">
+    <div className="min-h-screen bg-gradient-to-b from-accent to-white dark:from-primary dark:to-background">
       <div className="container max-w-4xl pt-10 pb-20 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">MoodSphere</h1>
-          <p className="text-gray-600">Track, visualize, and understand your emotional health</p>
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-left">
+            <h1 className="text-3xl font-bold text-primary mb-2">MoodSphere</h1>
+            <p className="text-gray-600 dark:text-gray-400">Track, visualize, and understand your emotional health</p>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Sun className="h-4 w-4" />
+            <Switch 
+              checked={theme === 'dark'}
+              onCheckedChange={toggleTheme} 
+            />
+            <Moon className="h-4 w-4" />
+          </div>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="track">Track Mood</TabsTrigger>
-            <TabsTrigger value="history" onClick={generateSampleData}>History</TabsTrigger>
-            <TabsTrigger value="insights" onClick={generateSampleData}>Insights</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
           </TabsList>
           
           <TabsContent value="track" className="mt-4">
             <Card>
               <CardContent className="pt-6">
                 <MoodQuestionnaire onSubmit={handleMoodSubmit} />
+                
+                {moodEntries.length > 0 && (
+                  <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-medium mb-4">Recent Mood History</h3>
+                    <MoodGraph data={moodEntries.slice(-7)} />
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -85,7 +114,7 @@ const Index = () => {
                   <MoodGraph data={moodEntries} />
                 ) : (
                   <div className="text-center py-10">
-                    <p className="text-gray-500">No mood entries yet. Start tracking your mood to see history.</p>
+                    <p className="text-gray-500 dark:text-gray-400">No mood entries yet. Start tracking your mood to see history.</p>
                   </div>
                 )}
               </CardContent>
@@ -99,7 +128,7 @@ const Index = () => {
                   <ReportGenerator entries={moodEntries} />
                 ) : (
                   <div className="text-center py-10">
-                    <p className="text-gray-500">Complete a mood check-in to generate insights.</p>
+                    <p className="text-gray-500 dark:text-gray-400">Complete a mood check-in to generate insights.</p>
                   </div>
                 )}
               </CardContent>
@@ -109,7 +138,7 @@ const Index = () => {
         
         {moodEntries.length > 0 && activeTab === "track" && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               You've logged {moodEntries.length} mood entries. Great job tracking your emotional health!
             </p>
           </div>
