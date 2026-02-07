@@ -4,9 +4,9 @@ import { MoodEntry } from '../types';
 // Points to the secure Vercel Serverless Function
 const ENDPOINT = '/api/mood-sync';
 
-export const fetchEntries = async (): Promise<MoodEntry[]> => {
+export const fetchEntries = async (username: string): Promise<MoodEntry[]> => {
     try {
-        const response = await fetch(ENDPOINT);
+        const response = await fetch(`${ENDPOINT}?username=${encodeURIComponent(username)}`);
         if (!response.ok) throw new Error('Failed to fetch from Google Sheets');
 
         const data = await response.json();
@@ -26,15 +26,16 @@ export const fetchEntries = async (): Promise<MoodEntry[]> => {
         }));
     } catch (error) {
         console.error('Error fetching from Google Sheets:', error);
-        // Fallback to local storage if API fails
-        const saved = localStorage.getItem('moodEntries');
+        // Fallback to local storage if API fails (scoped by username)
+        const saved = localStorage.getItem(`moodEntries_${username}`);
         return saved ? JSON.parse(saved) : [];
     }
 };
 
-export const saveEntry = async (entry: MoodEntry): Promise<boolean> => {
+export const saveEntry = async (entry: MoodEntry, username: string): Promise<boolean> => {
     try {
         const payload = {
+            Username: username,
             Date: entry.date,
             "Overall Score": entry.overallScore,
             "Q1: Overall Mood": entry.answers.find(a => a.questionId === 1)?.value,
@@ -52,6 +53,11 @@ export const saveEntry = async (entry: MoodEntry): Promise<boolean> => {
             },
             body: JSON.stringify(payload),
         });
+
+        // Cache locally even if fetch fails, but scope by username
+        const saved = localStorage.getItem(`moodEntries_${username}`);
+        const entries = saved ? JSON.parse(saved) : [];
+        localStorage.setItem(`moodEntries_${username}`, JSON.stringify([...entries, entry]));
 
         return response.ok;
     } catch (error) {

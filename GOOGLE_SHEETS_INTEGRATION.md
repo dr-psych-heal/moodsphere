@@ -4,18 +4,27 @@ This document details the schema and setup process for using Google Sheets as th
 
 ## 1. Sheet Schema
 
+### Tab 1: `MoodData` (Main)
 The Google Sheet should have a header row with the following columns:
 
 | Column | Description | Format |
 |--------|-------------|--------|
+| **Username** | The ID of the user | `String (e.g., john_doe)` |
 | **Date** | ISO Timestamp of the entry | `YYYY-MM-DDTHH:mm:ss.sssZ` |
-| **Overall Score** | The calculated mood score (1-10) | `Number (e.g., 7.5)` |
-| **Q1: Overall Mood** | Rating for question 1 | `Number (1-10)` |
-| **Q2: Stress** | Rating for question 2 | `Number (1-10)` |
-| **Q3: Social** | Rating for question 3 | `Number (1-10)` |
-| **Q4: Energy** | Rating for question 4 | `Number (1-10)` |
-| **Q5: Satisfaction** | Rating for question 5 | `Number (1-10)` |
-| **Triggers** | Comma-separated list of selected triggers | `String (e.g., "Work stress, Sleep")` |
+| **Overall Score** | mood score (1-10) | `Number` |
+| **Q1: Overall Mood** | Rating for Q1 | `Number (1-10)` |
+| **Q2: Stress** | Rating for Q2 | `Number (1-10)` |
+| **Q3: Social** | Rating for Q3 | `Number (1-10)` |
+| **Q4: Energy** | Rating for Q4 | `Number (1-10)` |
+| **Q5: Satisfaction** | Rating for Q5 | `Number (1-10)` |
+| **Triggers** | selected triggers | `String` |
+
+### Tab 2: `Users` (Authentication)
+Create a second tab named `Users` for credential storage.
+
+| Username | Password | Full Name |
+| :--- | :--- | :--- |
+| john_doe | p@ssword123 | John Doe |
 
 ## 🚨 Critical Security Warning: Service Accounts
 

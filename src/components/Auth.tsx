@@ -3,26 +3,40 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Lock } from 'lucide-react';
+import { Lock, User } from 'lucide-react';
 
 interface AuthProps {
-  onAuthenticated: () => void;
+  onAuthenticated: (user: { username: string, fullName: string }) => void;
 }
 
 const Auth: React.FC<AuthProps> = ({ onAuthenticated }) => {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For "Simple Auth", we'll use a configurable password or a default one
-    const masterPassword = import.meta.env.VITE_AUTH_PASSWORD || 'mood123';
-    
-    if (password === masterPassword) {
-      localStorage.setItem('isAuthenticated', 'true');
-      onAuthenticated();
-    } else {
-      setError('Invalid password');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/mood-sync?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('fullName', data.user.fullName);
+        onAuthenticated(data.user);
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Invalid credentials');
+      }
+    } catch (err) {
+      setError('Could not connect to the authentication server.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -34,22 +48,38 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticated }) => {
             <Lock className="w-6 h-6 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold text-primary">MoodSphere Access</CardTitle>
-          <CardDescription>Enter password to access your emotional health dashboard</CardDescription>
+          <CardDescription>Sign in to your emotional health dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-white/50 dark:bg-gray-900/50"
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="bg-white/50 dark:bg-gray-900/50 pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-white/50 dark:bg-gray-900/50"
+                  required
+                />
+              </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
-            <Button type="submit" className="w-full">
-              Unlock Dashboard
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Verifying...' : 'Unlock Dashboard'}
             </Button>
           </form>
         </CardContent>
