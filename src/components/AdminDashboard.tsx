@@ -224,30 +224,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         if (!stats) return null;
 
         return (
-            <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col p-0 overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl border-primary/20 shadow-2xl">
-                <DialogHeader className="p-8 bg-primary/5 border-b border-primary/10 relative">
+            <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-3xl border-primary/20 shadow-2xl rounded-[2rem] sm:rounded-none">
+                <DialogHeader className="p-5 md:p-8 bg-primary/5 border-b border-primary/10 relative">
                     <div className="flex justify-between items-center relative z-10">
                         <div className="space-y-1">
-                            <DialogTitle className="text-3xl font-black text-primary tracking-tighter">{user.fullName}</DialogTitle>
-                            <DialogDescription className="font-mono text-[11px] uppercase tracking-[0.2em] font-black opacity-40">
+                            <DialogTitle className="text-xl md:text-3xl font-black text-primary tracking-tighter leading-none">{user.fullName}</DialogTitle>
+                            <DialogDescription className="font-mono text-[9px] md:text-[11px] uppercase tracking-[0.2em] font-black opacity-40">
                                 Electronic Health Record • @{user.username}
                             </DialogDescription>
                         </div>
                         <div className="flex gap-2">
                             {stats.onMedication && (
-                                <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-3 py-1 font-black text-[10px] tracking-widest animate-pulse">
+                                <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-2 md:px-3 py-1 font-black text-[8px] md:text-[10px] tracking-widest animate-pulse">
                                     ON MEDICATION
                                 </Badge>
                             )}
-                            <Badge variant="outline" className="px-3 py-1 font-black text-[10px] tracking-widest">{user.role}</Badge>
+                            <Badge variant="outline" className="px-2 md:px-3 py-1 font-black text-[8px] md:text-[10px] tracking-widest">{user.role}</Badge>
                         </div>
                     </div>
                     {/* Background Accent */}
                     <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-primary/10 to-transparent pointer-none" />
                 </DialogHeader>
 
-                <ScrollArea className="flex-1">
-                    <div className="p-8 space-y-12 pb-20">
+                <ScrollArea className="flex-1 overflow-y-auto">
+                    <div className="p-5 md:p-8 space-y-8 md:space-y-12 pb-20">
                         {/* 1. Clinical Overview */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="p-4 rounded-2xl bg-primary/5 border border-primary/5 text-center">
