@@ -23,10 +23,10 @@ Styles are managed in [tailwind.config.ts](file:///e:/Code%20projects/github%20p
 
 ## 5. API Actions & Synchronization
 Backend logic in [api/mood-sync.ts](file:///e:/Code%20projects/github%20projects/mood-sphere-report/api/mood-sync.ts):
-- `action=fetch_prescriptions`: Fetches active prescriptions for a user.
-- `action=add_prescription`: [NEW] Admin tool to assign medication to specific patients.
-- `action=save_med_log`: Records medication intake.
-- `action=admin_data`: Aggregates all user metrics. Includes server-side isolation by **AssociatedPsychiatrist**.
+- `action=fetch_prescriptions`: [FIXED] Fetches active prescriptions. Uses `medicationName`, `dosage`, `schedule`.
+- `action=add_prescription`: Admin tool to assign new medication records.
+- `action=save_med_log`: Records daily intake with timestamping.
+- `action=admin_data`: Aggregates all clinical metrics. Enforces patient isolation by **AssociatedPsychiatrist**.
 
 ## 6. Mobile UI Optimization
 - **Navigation Tabs**: Switched from fixed grid to horizontally scrollable flex container in [Index.tsx](file:///e:/Code%20projects/github%20projects/mood-sphere-report/src/pages/Index.tsx). Uses `overflow-x-auto` and `no-scrollbar`.

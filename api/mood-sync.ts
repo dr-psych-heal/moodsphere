@@ -128,9 +128,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .filter(p => authorizedUsernames.has(p.get('Username')))
                 .map(p => ({
                     username: p.get('Username'),
-                    medicationName: p.get('MedicationName'),
-                    dosage: p.get('Dosage'),
-                    status: p.get('Status')
+                    medicationName: p.get('medicationName') || p.get('MedicationName'),
+                    dosage: p.get('dosage') || p.get('Dosage'),
+                    status: p.get('status') || p.get('Status') || 'Active',
+                    schedule: p.get('schedule') || p.get('Schedule')
                 }));
 
             const medLogData = logs
@@ -219,14 +220,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // --- HANDLE MEDICATION ACTIONS ---
+        if (req.method === 'GET' && action === 'fetch_prescriptions' && prescriptionSheet) {
+            const rows = await prescriptionSheet.getRows();
+            const entries = rows
+                .filter(p => p.get('Username') === username)
+                .map(p => ({
+                    username: p.get('Username'),
+                    medicationName: p.get('medicationName') || p.get('MedicationName'),
+                    dosage: p.get('dosage') || p.get('Dosage'),
+                    status: p.get('status') || p.get('Status') || 'Active',
+                    schedule: p.get('schedule') || p.get('Schedule')
+                }));
+            return res.status(200).json(entries);
+        }
+
         if (req.method === 'POST' && action === 'add_prescription' && prescriptionSheet) {
             const data = req.body;
-            // Payload should match: { Username, MedicationName, Dosage, Status }
+            // Payload should match: { Username, medicationName, dosage, Status/Schedule }
             await prescriptionSheet.addRow({
                 Username: data.username,
-                MedicationName: data.medicationName,
-                Dosage: data.dosage,
+                medicationName: data.medicationName,
+                dosage: data.dosage,
+                schedule: data.schedule || '',
                 Status: data.status || 'Active'
+            });
+            return res.status(200).json({ success: true });
+        }
+
+        if (req.method === 'POST' && action === 'save_med_log' && medLogSheet) {
+            const data = req.body;
+            await medLogSheet.addRow({
+                Username: data.username,
+                medicationName: data.medicationName,
+                Timestamp: data.timestamp || new Date().toISOString()
             });
             return res.status(200).json({ success: true });
         }
