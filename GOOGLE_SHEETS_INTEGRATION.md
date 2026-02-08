@@ -22,10 +22,12 @@ The Google Sheet should have a header row with the following columns:
 ### Tab 2: `Users` (Authentication & Roles)
 Create a second tab named `Users` for credential storage and access control.
 
-| Username | Password | Full Name | Role |
-| :--- | :--- | :--- | :--- |
-| james_h | pass123 | James Harrison | admin |
-| john_doe | mood789 | John Doe | user |
+| Username | Password | Full Name | Role | AssociatedPsychiatrist |
+| :--- | :--- | :--- | :--- | :--- |
+| james_h | pass123 | James Harrison | admin | |
+| dr_clark | pass890 | Dr. Clark | admin | |
+| patient_a | 1234 | Patient Alice | user | dr_clark |
+| john_doe | mood789 | John Doe | user | james_h |
 
 > [!NOTE]
 > - **admin**: Has access to the global "Admin" tab.

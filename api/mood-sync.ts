@@ -55,8 +55,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // --- HANDLE ADMIN DATA FETCH ---
         if (req.method === 'GET' && action === 'admin_data') {
             if (!userSheet) return res.status(500).json({ error: 'Users sheet not found' });
+            if (!username) return res.status(400).json({ error: 'Admin username required for isolation' });
 
-            const [rows, users, journals, thoughts, prescriptions, logs] = await Promise.all([
+            const [allRows, allUsersRows, journals, thoughts, prescriptions, logs] = await Promise.all([
                 dataSheet.getRows(),
                 userSheet.getRows(),
                 journalSheet ? journalSheet.getRows() : Promise.resolve([]),
@@ -65,61 +66,83 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 medLogSheet ? medLogSheet.getRows() : Promise.resolve([])
             ]);
 
-            const allEntries = rows.map(row => ({
-                Username: row.get('Username'),
-                Date: row.get('Date'),
-                "Overall Score": row.get('Overall Score'),
-                "Q1: Overall Mood": row.get('Q1: Overall Mood'),
-                "Q2: Stress": row.get('Q2: Stress'),
-                "Q3: Social": row.get('Q3: Social'),
-                "Q4: Energy": row.get('Q4: Energy'),
-                "Q5: Satisfaction": row.get('Q5: Satisfaction'),
-                Triggers: row.get('Triggers'),
-            }));
+            // Determine authorized patients for this admin
+            // A Super Admin (james_h) might see everything, others see only their assigned patients
+            const isSuperAdmin = username === 'james_h';
+            const authorizedPatients = allUsersRows.filter(u => {
+                const assignedDoc = u.get('AssociatedPsychiatrist');
+                return isSuperAdmin || assignedDoc === username;
+            });
 
-            const userData = users.map(u => ({
+            const authorizedUsernames = new Set(authorizedPatients.map(u => u.get('Username')));
+
+            // Filter all data packets
+            const filteredEntries = allRows
+                .filter(row => authorizedUsernames.has(row.get('Username')))
+                .map(row => ({
+                    Username: row.get('Username'),
+                    Date: row.get('Date'),
+                    "Overall Score": row.get('Overall Score'),
+                    "Q1: Overall Mood": row.get('Q1: Overall Mood'),
+                    "Q2: Stress": row.get('Q2: Stress'),
+                    "Q3: Social": row.get('Q3: Social'),
+                    "Q4: Energy": row.get('Q4: Energy'),
+                    "Q5: Satisfaction": row.get('Q5: Satisfaction'),
+                    Triggers: row.get('Triggers'),
+                }));
+
+            const userData = authorizedPatients.map(u => ({
                 username: u.get('Username'),
                 fullName: u.get('Full Name'),
-                role: u.get('Role') || 'user'
+                role: u.get('Role') || 'user',
+                associatedPsychiatrist: u.get('AssociatedPsychiatrist')
             }));
 
-            const journalData = journals.map(r => ({
-                username: r.get('Username'),
-                date: r.get('Date'),
-                content: r.get('Content'),
-                dayNumber: r.get('DayNumber')
-            }));
+            const journalData = journals
+                .filter(r => authorizedUsernames.has(r.get('Username')))
+                .map(r => ({
+                    username: r.get('Username'),
+                    date: r.get('Date'),
+                    content: r.get('Content'),
+                    dayNumber: r.get('DayNumber')
+                }));
 
-            const thoughtData = thoughts.map(r => ({
-                username: r.get('Username'),
-                date: r.get('Date'),
-                dayNumber: r.get('DayNumber'),
-                situation: r.get('Situation'),
-                emotion: r.get('Emotion'),
-                intensityScore: r.get('IntensityScore'),
-                automaticThought: r.get('AutomaticThought'),
-                evidenceFor: r.get('EvidenceFor'),
-                evidenceAgainst: r.get('EvidenceAgainst'),
-                alternativeThought: r.get('AlternativeThought'),
-                behaviorResponse: r.get('BehaviorResponse'),
-                emotionAfterIntensity: r.get('EmotionAfterIntensity')
-            }));
+            const thoughtData = thoughts
+                .filter(r => authorizedUsernames.has(r.get('Username')))
+                .map(r => ({
+                    username: r.get('Username'),
+                    date: r.get('Date'),
+                    dayNumber: r.get('DayNumber'),
+                    situation: r.get('Situation'),
+                    emotion: r.get('Emotion'),
+                    intensityScore: r.get('IntensityScore'),
+                    automaticThought: r.get('AutomaticThought'),
+                    evidenceFor: r.get('EvidenceFor'),
+                    evidenceAgainst: r.get('EvidenceAgainst'),
+                    alternativeThought: r.get('AlternativeThought'),
+                    behaviorResponse: r.get('BehaviorResponse'),
+                    emotionAfterIntensity: r.get('EmotionAfterIntensity')
+                }));
 
-            const prescriptionData = prescriptions.map(p => ({
-                username: p.get('Username'),
-                medicationName: p.get('MedicationName'),
-                dosage: p.get('Dosage'),
-                status: p.get('Status')
-            }));
+            const prescriptionData = prescriptions
+                .filter(p => authorizedUsernames.has(p.get('Username')))
+                .map(p => ({
+                    username: p.get('Username'),
+                    medicationName: p.get('MedicationName'),
+                    dosage: p.get('Dosage'),
+                    status: p.get('Status')
+                }));
 
-            const medLogData = logs.map(l => ({
-                username: l.get('Username'),
-                medicationName: l.get('MedicationName'),
-                timestamp: l.get('Timestamp')
-            }));
+            const medLogData = logs
+                .filter(l => authorizedUsernames.has(l.get('Username')))
+                .map(l => ({
+                    username: l.get('Username'),
+                    medicationName: l.get('MedicationName'),
+                    timestamp: l.get('Timestamp')
+                }));
 
             return res.status(200).json({
-                entries: allEntries,
+                entries: filteredEntries,
                 users: userData,
                 journalEntries: journalData,
                 thoughtRecords: thoughtData,

@@ -78,7 +78,7 @@ const Index = () => {
     setIsLoading(true);
     try {
       if (role === 'admin') {
-        const response = await fetch('/api/mood-sync?action=admin_data');
+        const response = await fetch(`/api/mood-sync?action=admin_data&username=${username}`);
         if (response.ok) {
           const data = await response.json();
           setAdminData(data);
@@ -116,9 +116,9 @@ const Index = () => {
     }
   };
 
-  const loadAdminData = async () => {
+  const loadAdminData = async (adminUsername: string) => {
     try {
-      const response = await fetch('/api/mood-sync?action=admin_data');
+      const response = await fetch(`/api/mood-sync?action=admin_data&username=${adminUsername}`);
       if (response.ok) {
         const data = await response.json();
         setAdminData(data);
@@ -168,7 +168,7 @@ const Index = () => {
     const success = await saveEntry(entry, user.username);
     if (success) {
       toast({ title: "Logged Successfully", description: "Your mood log has been saved." });
-      if (user.role === 'admin') loadAdminData();
+      if (user.role === 'admin') loadAdminData(user.username);
     }
     setIsSubmitting(false);
   };
@@ -228,7 +228,7 @@ const Index = () => {
     if (success) {
       toast({ title: "Medication Logged", description: `${medicationName} taken.` });
       // Optionally, refresh admin data if user is admin
-      if (user.role === 'admin') loadAdminData();
+      if (user.role === 'admin') loadAdminData(user.username);
     } else {
       toast({ title: "Error", description: "Failed to log medication.", variant: "destructive" });
     }
@@ -293,7 +293,7 @@ const Index = () => {
                   </TooltipTrigger>
                   <TooltipContent className="bg-white/95 dark:bg-gray-900/95 border-primary/20 p-4 max-w-[280px] rounded-2xl shadow-2xl">
                     <p className="text-xs font-bold leading-relaxed text-primary/80">
-                      App data is <span className="text-green-600">completely secure</span> — end-to-end — and is only accessible to the consulting Psychiatrist — <span className="font-black">Dr. Umme Ammaara</span>.
+                      App data is <span className="text-green-600">completely secure</span> — end-to-end — and is only accessible to the consulting Psychiatrist/Therapist.
                     </p>
                   </TooltipContent>
                 </Tooltip>
