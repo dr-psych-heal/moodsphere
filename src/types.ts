@@ -39,3 +39,16 @@ export interface ThoughtRecord {
   behaviorResponse: string;
   emotionAfterIntensity: number; // 0-100
 }
+
+export interface MedicationPrescription {
+  username: string;
+  medicationName: string;
+  dosage?: string;
+  status: 'Active' | 'Inactive';
+}
+
+export interface MedicationLog {
+  username: string;
+  medicationName: string;
+  timestamp: string;
+}

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Lock, User } from 'lucide-react';
+import { Brain, User } from 'lucide-react';
 
 interface AuthProps {
   onAuthenticated: (user: { username: string, fullName: string, role: string }) => void;
@@ -46,9 +46,9 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticated }) => {
       <Card className="w-full max-w-md border-primary/10 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6 text-primary" />
+            <Brain className="w-6 h-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">MoodSphere Access</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Mood Sphere Access</CardTitle>
           <CardDescription>Sign in to your emotional health dashboard</CardDescription>
         </CardHeader>
         <CardContent>

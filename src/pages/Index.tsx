@@ -12,12 +12,21 @@ import AdminDashboard from '../components/AdminDashboard';
 import EmotionalJournal from '../components/EmotionalJournal';
 import ThoughtRecord from '../components/ThoughtRecord';
 import Auth from '../components/Auth';
-import { MoodEntry, JournalEntry, ThoughtRecord as ThoughtRecordType } from '../types';
-import { Moon, Sun, Loader2, LogOut, Send, ShieldAlert, BookText, BrainCircuit } from 'lucide-react';
+import MedicationTracker from '../components/MedicationTracker'; // Added
+import {
+  MoodEntry,
+  JournalEntry,
+  ThoughtRecord as ThoughtRecordType,
+  MedicationPrescription, // Added
+  MedicationLog // Added
+} from '../types';
+import { Moon, Sun, Loader2, LogOut, Send, ShieldAlert, ShieldCheck, BookText, BrainCircuit, Pill } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   fetchEntries, saveEntry,
   fetchJournal, saveJournal,
-  fetchThoughtRecords, saveThoughtRecord
+  fetchThoughtRecords, saveThoughtRecord,
+  fetchPrescriptions, saveMedicationLog // Added fetchPrescriptions, saveMedicationLog
 } from '../lib/googleSheets';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from '@/components/ui/button';
@@ -28,6 +37,7 @@ const Index = () => {
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([]);
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [thoughtRecords, setThoughtRecords] = useState<ThoughtRecordType[]>([]);
+  const [prescriptions, setPrescriptions] = useState<MedicationPrescription[]>([]); // Added
 
   const [activeTab, setActiveTab] = useState("track");
   const [selectedTriggers, setSelectedTriggers] = useState<string[]>([]);
@@ -37,7 +47,9 @@ const Index = () => {
     entries: any[],
     users: any[],
     journalEntries: JournalEntry[],
-    thoughtRecords: ThoughtRecordType[]
+    thoughtRecords: ThoughtRecordType[],
+    prescriptions: MedicationPrescription[], // Added
+    medLogs: MedicationLog[] // Added
   } | null>(null);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -65,16 +77,34 @@ const Index = () => {
   const loadAllData = async (username: string, role: string) => {
     setIsLoading(true);
     try {
-      const [moods, journal, thoughts] = await Promise.all([
-        fetchEntries(username),
-        fetchJournal(username),
-        fetchThoughtRecords(username)
-      ]);
-      setMoodEntries(moods);
-      setJournalEntries(journal);
-      setThoughtRecords(thoughts);
-
-      if (role === 'admin') await loadAdminData();
+      if (role === 'admin') {
+        const response = await fetch('/api/mood-sync?action=admin_data');
+        if (response.ok) {
+          const data = await response.json();
+          setAdminData(data);
+          // Also set personal data if admin is tracking themselves
+          setMoodEntries(data.entries.filter((e: any) => e.Username === username).map((e: any) => ({
+            date: e.Date,
+            overallScore: parseFloat(e["Overall Score"]),
+            triggers: e.Triggers ? e.Triggers.split(', ') : [],
+            answers: []
+          })));
+          setJournalEntries(data.journalEntries.filter((e: any) => e.username === username));
+          setThoughtRecords(data.thoughtRecords.filter((e: any) => e.username === username));
+          setPrescriptions(data.prescriptions.filter((e: any) => e.username === username));
+        }
+      } else {
+        const [moods, journal, thoughts, prescriptionsData] = await Promise.all([ // Added prescriptionsData
+          fetchEntries(username),
+          fetchJournal(username),
+          fetchThoughtRecords(username),
+          fetchPrescriptions(username) // Added fetchPrescriptions
+        ]);
+        setMoodEntries(moods);
+        setJournalEntries(journal);
+        setThoughtRecords(thoughts);
+        setPrescriptions(prescriptionsData); // Added
+      }
     } catch (error) {
       toast({
         title: "Error loading data",
@@ -109,6 +139,7 @@ const Index = () => {
     setMoodEntries([]);
     setJournalEntries([]);
     setThoughtRecords([]);
+    setPrescriptions([]); // Added
     setAdminData(null);
     setActiveTab("track");
   };
@@ -182,6 +213,28 @@ const Index = () => {
     setIsSubmitting(false);
   };
 
+  const handleLogMedication = async (medicationName: string) => { // Added
+    if (!user || isSubmitting) return;
+    setIsSubmitting(true);
+
+    const logEntry: MedicationLog = {
+      username: user.username,
+      medicationName,
+      timestamp: new Date().toISOString()
+    };
+
+    const success = await saveMedicationLog(logEntry);
+
+    if (success) {
+      toast({ title: "Medication Logged", description: `${medicationName} taken.` });
+      // Optionally, refresh admin data if user is admin
+      if (user.role === 'admin') loadAdminData();
+    } else {
+      toast({ title: "Error", description: "Failed to log medication.", variant: "destructive" });
+    }
+    setIsSubmitting(false);
+  };
+
   const handleAnswerChange = (index: number, value: number) => {
     const newAnswers = [...answers];
     newAnswers[index] = value;
@@ -217,7 +270,7 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent to-white dark:from-primary/20 dark:to-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-10 w-10 text-primary animate-spin" />
-          <p className="text-muted-foreground animate-pulse">Loading {user.fullName}'s MoodSphere...</p>
+          <p className="text-muted-foreground animate-pulse">Loading {user.fullName}'s Mood Sphere...</p>
         </div>
       </div>
     );
@@ -229,7 +282,23 @@ const Index = () => {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4">
           <div className="text-left font-sans">
-            <h1 className="text-2xl md:text-4xl font-black text-primary mb-1 md:mb-2 tracking-tight text-shadow-sm">MoodSphere</h1>
+            <div className="flex items-center gap-3 mb-1 md:mb-2">
+              <h1 className="text-2xl md:text-4xl font-black text-primary tracking-tight text-shadow-sm">Mood Sphere</h1>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="cursor-help p-1 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+                      <ShieldCheck className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-white/95 dark:bg-gray-900/95 border-primary/20 p-4 max-w-[280px] rounded-2xl shadow-2xl">
+                    <p className="text-xs font-bold leading-relaxed text-primary/80">
+                      App data is <span className="text-green-600">completely secure</span> — end-to-end — and is only accessible to the consulting Psychiatrist — <span className="font-black">Dr. Umme Ammaara</span>.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <div className="space-y-1">
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-medium flex items-center gap-2">
                 Hello, <span className="font-bold text-primary">{user.fullName}</span> 👋
@@ -261,10 +330,11 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-6' : 'grid-cols-5'} mb-8 md:mb-12 bg-white/40 dark:bg-gray-800/40 backdrop-blur-md p-1.5 rounded-2xl shadow-inner border border-white/10 overflow-x-auto`}>
+          <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-7' : 'grid-cols-6'} mb-8 md:mb-12 bg-white/40 dark:bg-gray-800/40 backdrop-blur-md p-1.5 rounded-2xl shadow-inner border border-white/10 overflow-x-auto`}> {/* Updated grid-cols */}
             <TabsTrigger value="track" className="rounded-xl py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-semibold">Track</TabsTrigger>
             <TabsTrigger value="journal" className="rounded-xl py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-semibold flex gap-2"><BookText className="h-4 w-4" /> Journal</TabsTrigger>
             <TabsTrigger value="thoughts" className="rounded-xl py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-semibold flex gap-2"><BrainCircuit className="h-4 w-4" /> CBT</TabsTrigger>
+            <TabsTrigger value="medication" className="rounded-xl py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-semibold flex gap-2"><Pill className="h-4 w-4" /> Medication</TabsTrigger> {/* Added Medication Tab */}
             <TabsTrigger value="history" className="rounded-xl py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-semibold">History</TabsTrigger>
             <TabsTrigger value="insights" className="rounded-xl py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-semibold">Insights</TabsTrigger>
             {user.role === 'admin' && (
@@ -292,6 +362,10 @@ const Index = () => {
             <ThoughtRecord records={thoughtRecords} onSave={handleThoughtRecordSave} isSubmitting={isSubmitting} />
           </TabsContent>
 
+          <TabsContent value="medication" className="mt-4"> {/* Added Medication Tab Content */}
+            <MedicationTracker prescriptions={prescriptions} onLogMedication={handleLogMedication} isSubmitting={isSubmitting} />
+          </TabsContent>
+
           <TabsContent value="history" className="mt-4 animate-in fade-in duration-500">
             <Card className="border-primary/10 shadow-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm glass-card overflow-hidden">
               <CardContent className="pt-8 px-2 md:px-6">
@@ -315,6 +389,8 @@ const Index = () => {
                 allUsers={adminData.users}
                 journalEntries={adminData.journalEntries}
                 thoughtRecords={adminData.thoughtRecords}
+                prescriptions={adminData.prescriptions} // Added
+                medLogs={adminData.medLogs} // Added
               />
             </TabsContent>
           )}

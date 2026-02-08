@@ -136,3 +136,30 @@ export const saveThoughtRecord = async (record: ThoughtRecord): Promise<boolean>
         return false;
     }
 };
+
+// --- MEDICATION ---
+
+export const fetchPrescriptions = async (username: string): Promise<any[]> => {
+    try {
+        const response = await fetch(`${ENDPOINT}?action=fetch_prescriptions&username=${encodeURIComponent(username)}`);
+        if (!response.ok) throw new Error('Failed to fetch prescriptions');
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching prescriptions:', error);
+        return [];
+    }
+};
+
+export const saveMedicationLog = async (log: any): Promise<boolean> => {
+    try {
+        const response = await fetch(`${ENDPOINT}?action=save_med_log`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(log),
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error saving medication log:', error);
+        return false;
+    }
+};

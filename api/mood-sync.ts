@@ -26,6 +26,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const userSheet = doc.sheetsByTitle['Users'];
         const journalSheet = doc.sheetsByTitle['JournalData'];
         const thoughtRecordSheet = doc.sheetsByTitle['ThoughtRecordData'];
+        const prescriptionSheet = doc.sheetsByTitle['MedicationPrescriptions'];
+        const medLogSheet = doc.sheetsByTitle['MedicationLogs'];
 
         const { action, username, password } = req.query;
 
@@ -54,11 +56,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'GET' && action === 'admin_data') {
             if (!userSheet) return res.status(500).json({ error: 'Users sheet not found' });
 
-            const [rows, users, journals, thoughts] = await Promise.all([
+            const [rows, users, journals, thoughts, prescriptions, logs] = await Promise.all([
                 dataSheet.getRows(),
                 userSheet.getRows(),
                 journalSheet ? journalSheet.getRows() : Promise.resolve([]),
-                thoughtRecordSheet ? thoughtRecordSheet.getRows() : Promise.resolve([])
+                thoughtRecordSheet ? thoughtRecordSheet.getRows() : Promise.resolve([]),
+                prescriptionSheet ? prescriptionSheet.getRows() : Promise.resolve([]),
+                medLogSheet ? medLogSheet.getRows() : Promise.resolve([])
             ]);
 
             const allEntries = rows.map(row => ({
@@ -101,11 +105,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 emotionAfterIntensity: r.get('EmotionAfterIntensity')
             }));
 
+            const prescriptionData = prescriptions.map(p => ({
+                username: p.get('Username'),
+                medicationName: p.get('MedicationName'),
+                dosage: p.get('Dosage'),
+                status: p.get('Status')
+            }));
+
+            const medLogData = logs.map(l => ({
+                username: l.get('Username'),
+                medicationName: l.get('MedicationName'),
+                timestamp: l.get('Timestamp')
+            }));
+
             return res.status(200).json({
                 entries: allEntries,
                 users: userData,
                 journalEntries: journalData,
-                thoughtRecords: thoughtData
+                thoughtRecords: thoughtData,
+                prescriptions: prescriptionData,
+                medLogs: medLogData
             });
         }
 

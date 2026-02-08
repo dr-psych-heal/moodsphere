@@ -38,12 +38,27 @@ Stores free-form emotional journal entries.
 | :--- | :--- | :--- | :--- |
 | john_doe | 2024-02-08T... | I felt very productive... | 1 |
 
-### Tab 4: `ThoughtRecordData` [NEW]
+### Tab 4: `ThoughtRecordData`
 Stores structured CBT thought records.
 
 | Username | Date | DayNumber | Situation | Emotion | IntensityScore | AutomaticThought | EvidenceFor | EvidenceAgainst | AlternativeThought | BehaviorResponse | EmotionAfterIntensity |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | john_doe | 2024-02-08 | 1 | Meeting... | Anxious | 80 | I'll mess up | I was late | I prepared well | I can handle it | Took a breath | 40 |
+
+### Tab 5: `MedicationPrescriptions` [NEW]
+Allows admins to assign medications to specific users.
+
+| Username | medicationName | dosage | schedule |
+| :--- | :--- | :--- | :--- |
+| john_doe | Fluoxetine | 20mg | Morning |
+| john_doe | Melatonin | 5mg | Bedtime |
+
+### Tab 6: `MedicationLogs` [NEW]
+Records every time a user marks a medication as taken.
+
+| Username | medicationName | timestamp |
+| :--- | :--- | :--- |
+| john_doe | Fluoxetine | 2024-02-08T09:00:00Z |
 
 ## 🚨 Critical Security Warning: Service Accounts
 
