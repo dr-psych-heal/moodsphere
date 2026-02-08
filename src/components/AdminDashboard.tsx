@@ -1,11 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, Activity, BookOpen, BrainCircuit, History, TrendingUp } from 'lucide-react';
+import { Users, Calendar, Activity, BookOpen, BrainCircuit, History, TrendingUp, ChevronRight, X, Clock } from 'lucide-react';
 import { MoodEntry, JournalEntry, ThoughtRecord } from '../types';
 import { moodQuestions } from './MoodQuestionnaire';
 import { format } from 'date-fns';
+import MoodGraph from './MoodGraph';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface AdminDashboardProps {
     allEntries: any[];
@@ -20,6 +31,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     journalEntries = [],
     thoughtRecords = []
 }) => {
+    const [selectedUser, setSelectedUser] = useState<string | null>(null);
+
+    const mapToMoodEntry = (raw: any): MoodEntry => ({
+        date: raw.Date,
+        overallScore: parseFloat(raw["Overall Score"]),
+        triggers: raw.Triggers ? raw.Triggers.split(', ') : [],
+        answers: [
+            { questionId: 1, value: parseFloat(raw["Q1: Overall Mood"]) },
+            { questionId: 2, value: parseFloat(raw["Q2: Stress"]) },
+            { questionId: 3, value: parseFloat(raw["Q3: Social"]) },
+            { questionId: 4, value: parseFloat(raw["Q4: Energy"]) },
+            { questionId: 5, value: parseFloat(raw["Q5: Satisfaction"]) },
+        ]
+    });
 
     const getUserStats = (username: string) => {
         const userEntries = allEntries.filter(e => e.Username === username);
@@ -30,9 +55,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         if (daysRecorded === 0 && userJournals.length === 0 && userThoughts.length === 0) return null;
 
-        const lastMoodEntry = userEntries.length > 0
-            ? [...userEntries].sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())[0]
-            : null;
+        const sortedMoods = [...userEntries].sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
+        const lastMoodEntry = sortedMoods.length > 0 ? sortedMoods[sortedMoods.length - 1] : null;
 
         const lastJournal = userJournals.length > 0
             ? [...userJournals].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
@@ -77,8 +101,102 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             journalCount: userJournals.length,
             thoughtCount: userThoughts.length,
             topTriggers,
-            nextDue
+            nextDue,
+            allMoods: sortedMoods.map(mapToMoodEntry),
+            allJournals: [...userJournals].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+            allThoughts: [...userThoughts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         };
+    };
+
+    const UserDetailModal = ({ username, fullName }: { username: string, fullName: string }) => {
+        const stats = getUserStats(username);
+        if (!stats) return null;
+
+        return (
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-primary/20">
+                <DialogHeader className="p-6 bg-primary/5 border-b border-primary/10">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <DialogTitle className="text-2xl font-black text-primary">{fullName}</DialogTitle>
+                            <DialogDescription className="font-mono text-[10px] uppercase tracking-widest opacity-60">Complete Patient Record • @{username}</DialogDescription>
+                        </div>
+                    </div>
+                </DialogHeader>
+
+                <ScrollArea className="flex-1 p-6">
+                    <div className="space-y-10">
+                        {/* Mood History Section */}
+                        <section className="space-y-4">
+                            <h3 className="text-lg font-bold flex items-center gap-2 text-primary">
+                                <Activity className="h-5 w-5" /> Mood History & Trends
+                            </h3>
+                            <MoodGraph data={stats.allMoods} height={200} hideHeader />
+                        </section>
+
+                        <Separator className="bg-primary/10" />
+
+                        {/* Longitudinal Logs Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Journal Column */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold flex items-center gap-2 text-primary/80">
+                                    <BookOpen className="h-5 w-5" /> Emotional Journal
+                                </h3>
+                                <div className="space-y-3">
+                                    {stats.allJournals.length > 0 ? stats.allJournals.map((j, i) => (
+                                        <div key={i} className="p-4 rounded-xl bg-primary/5 border border-primary/5 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <Badge variant="outline" className="text-[9px] bg-primary/10 border-none">Entry #{j.dayNumber || stats.allJournals.length - i}</Badge>
+                                                <span className="text-[10px] text-muted-foreground">{format(new Date(j.date), 'MMM d, p')}</span>
+                                            </div>
+                                            <p className="text-sm font-medium leading-relaxed italic">"{j.content}"</p>
+                                        </div>
+                                    )) : (
+                                        <p className="text-sm text-muted-foreground italic text-center py-8">No journal entries found.</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* CBT Column */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold flex items-center gap-2 text-destructive/80">
+                                    <BrainCircuit className="h-5 w-5" /> Thought Records (CBT)
+                                </h3>
+                                <div className="space-y-3">
+                                    {stats.allThoughts.length > 0 ? stats.allThoughts.map((t, i) => (
+                                        <div key={i} className="p-4 rounded-xl bg-destructive/[0.03] border border-destructive/10 space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <Badge className="bg-destructive/10 text-destructive border-none text-[9px] uppercase font-black">{t.emotion}</Badge>
+                                                <span className="text-[10px] text-muted-foreground">{format(new Date(t.date), 'MMM d, p')}</span>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/60">Situation</p>
+                                                <p className="text-xs font-bold leading-tight">{t.situation}</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-destructive" style={{ width: `${t.intensityScore}%` }} />
+                                                </div>
+                                                <TrendingUp className="h-3 w-3 text-green-500" />
+                                                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-green-500" style={{ width: `${t.emotionAfterIntensity}%` }} />
+                                                </div>
+                                            </div>
+                                            <div className="pt-2 border-t border-destructive/5">
+                                                <p className="text-[10px] font-black uppercase text-muted-foreground/60 mb-1">Balanced Thought</p>
+                                                <p className="text-xs italic text-primary font-medium">"{t.alternativeThought}"</p>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <p className="text-sm text-muted-foreground italic text-center py-8">No thought records found.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ScrollArea>
+            </DialogContent>
+        );
     };
 
     return (
@@ -108,117 +226,95 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     const stats = getUserStats(user.username);
 
                     return (stats || user.role === 'admin') ? (
-                        <Card key={user.username} className="overflow-hidden border-primary/10 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md group relative">
-                            {user.role === 'admin' && (
-                                <div className="absolute top-0 right-0 p-1">
-                                    <Badge className="bg-primary/20 text-primary border-none text-[8px] px-1 py-0 uppercase">Staff</Badge>
-                                </div>
-                            )}
-                            <CardHeader className="pb-2 bg-primary/[0.02] border-b border-primary/5">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">{user.fullName}</CardTitle>
-                                        <CardDescription className="text-[10px] font-mono uppercase tracking-tighter">ID: {user.username}</CardDescription>
-                                    </div>
-                                    <Badge variant={user.role === 'admin' ? "default" : "secondary"} className="uppercase text-[9px] font-black h-5">
-                                        {user.role}
-                                    </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-6 pt-6">
-                                {stats ? (
-                                    <>
-                                        {/* Main Stats Row */}
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="bg-primary/5 rounded-xl p-2 text-center border border-primary/5">
-                                                <p className="text-[8px] uppercase text-muted-foreground font-black mb-1">Avg</p>
-                                                <p className="text-lg font-black text-primary leading-none">{stats.avgScore}</p>
-                                            </div>
-                                            <div className="bg-primary/5 rounded-xl p-2 text-center border border-primary/5">
-                                                <p className="text-[8px] uppercase text-muted-foreground font-black mb-1">Moods</p>
-                                                <p className="text-lg font-black text-primary leading-none">{stats.daysRecorded}</p>
-                                            </div>
-                                            <div className="bg-primary/5 rounded-xl p-2 text-center border border-primary/5">
-                                                <p className="text-[8px] uppercase text-muted-foreground font-black mb-1">Journals</p>
-                                                <p className="text-lg font-black text-primary leading-none">{stats.journalCount}</p>
-                                            </div>
+                        <Dialog key={user.username}>
+                            <DialogTrigger asChild>
+                                <Card className="overflow-hidden border-primary/10 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md group relative cursor-pointer hover:border-primary/40 active:scale-[0.98]">
+                                    {user.role === 'admin' && (
+                                        <div className="absolute top-0 right-0 p-1">
+                                            <Badge className="bg-primary/20 text-primary border-none text-[8px] px-1 py-0 uppercase">Staff</Badge>
                                         </div>
-
-                                        {/* Mood Trend */}
-                                        {stats.lastMoodEntry && (
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between items-center">
-                                                    <p className="text-[10px] font-black text-muted-foreground uppercase flex items-center gap-1">
-                                                        <Activity className="h-3 w-3" /> Last Mood Check
-                                                    </p>
-                                                    <span className="text-[9px] italic opacity-60">
-                                                        {format(new Date(stats.lastMoodEntry.Date), 'MMM d')}
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-primary/10 h-2 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="bg-primary h-full transition-all duration-1000"
-                                                        style={{ width: `${(parseFloat(stats.lastMoodEntry["Overall Score"]) / 10) * 100}%` }}
-                                                    />
-                                                </div>
+                                    )}
+                                    <CardHeader className="pb-2 bg-primary/[0.02] border-b border-primary/5">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">{user.fullName}</CardTitle>
+                                                <CardDescription className="text-[10px] font-mono uppercase tracking-tighter">ID: {user.username}</CardDescription>
                                             </div>
-                                        )}
-
-                                        {/* Journal Preview */}
-                                        {stats.lastJournal && (
-                                            <div className="p-3 rounded-xl bg-accent/30 border border-primary/5 relative space-y-1">
-                                                <p className="text-[10px] font-black text-primary/70 uppercase flex items-center gap-1">
-                                                    <BookOpen className="h-3 w-3" /> Latest Journal
-                                                </p>
-                                                <p className="text-[11px] font-medium italic line-clamp-2 leading-relaxed text-muted-foreground">
-                                                    "{stats.lastJournal.content}"
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Thought Record Preview */}
-                                        {stats.lastThought && (
-                                            <div className="p-3 rounded-xl bg-destructive/[0.03] border border-destructive/10 space-y-1">
-                                                <div className="flex justify-between items-center">
-                                                    <p className="text-[10px] font-black text-destructive/70 uppercase flex items-center gap-1">
-                                                        <BrainCircuit className="h-3 w-3" /> CBT Status
-                                                    </p>
-                                                    <Badge className="bg-destructive/10 text-destructive border-none text-[8px] h-4">
-                                                        {stats.lastThought.emotion}
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-[11px] font-bold line-clamp-1 text-gray-700 dark:text-gray-300">
-                                                    {stats.lastThought.situation}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-destructive" style={{ width: `${stats.lastThought.intensityScore}%` }} />
+                                            <Badge variant={user.role === 'admin' ? "default" : "secondary"} className="uppercase text-[9px] font-black h-5">
+                                                {user.role}
+                                            </Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-5 pt-5">
+                                        {stats ? (
+                                            <>
+                                                {/* Main Stats Row */}
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <div className="bg-primary/5 rounded-xl p-2 text-center border border-primary/5">
+                                                        <p className="text-[8px] uppercase text-muted-foreground font-black mb-1">Avg</p>
+                                                        <p className="text-lg font-black text-primary leading-none">{stats.avgScore}</p>
                                                     </div>
-                                                    <TrendingUp className="h-3 w-3 text-green-500" />
-                                                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-green-500" style={{ width: `${stats.lastThought.emotionAfterIntensity}%` }} />
+                                                    <div className="bg-primary/5 rounded-xl p-2 text-center border border-primary/5">
+                                                        <p className="text-[8px] uppercase text-muted-foreground font-black mb-1">Moods</p>
+                                                        <p className="text-lg font-black text-primary leading-none">{stats.daysRecorded}</p>
+                                                    </div>
+                                                    <div className="bg-primary/5 rounded-xl p-2 text-center border border-primary/5">
+                                                        <p className="text-[8px] uppercase text-muted-foreground font-black mb-1">Logs</p>
+                                                        <p className="text-lg font-black text-primary leading-none">{stats.journalCount + stats.thoughtCount}</p>
                                                     </div>
                                                 </div>
+
+                                                {/* Sparkline Trend */}
+                                                {stats.allMoods.length > 0 && (
+                                                    <div className="space-y-1">
+                                                        <p className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest flex items-center justify-between">
+                                                            <span>Trend</span>
+                                                            <TrendingUp className="h-2 w-2" />
+                                                        </p>
+                                                        <MoodGraph data={stats.allMoods} compact />
+                                                    </div>
+                                                )}
+
+                                                {/* Latest Insight */}
+                                                {stats.lastJournal ? (
+                                                    <div className="flex items-start gap-2 p-2 rounded-lg bg-primary/[0.03] border border-primary/5">
+                                                        <BookOpen className="h-3 w-3 text-primary mt-0.5 opacity-60" />
+                                                        <p className="text-[10px] leading-tight font-medium italic line-clamp-2 text-muted-foreground">
+                                                            "{stats.lastJournal.content}"
+                                                        </p>
+                                                    </div>
+                                                ) : stats.lastThought ? (
+                                                    <div className="flex items-start gap-2 p-2 rounded-lg bg-destructive/[0.03] border border-destructive/5">
+                                                        <BrainCircuit className="h-3 w-3 text-destructive mt-0.5 opacity-60" />
+                                                        <p className="text-[10px] leading-tight font-medium line-clamp-2 text-muted-foreground">
+                                                            Challenge: {stats.lastThought.situation}
+                                                        </p>
+                                                    </div>
+                                                ) : null}
+
+                                                {/* Meta Footer */}
+                                                <div className="pt-2 border-t border-primary/5 flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
+                                                    <div className="flex flex-col gap-0.5">
+                                                        <span className="text-muted-foreground/60">Last: {stats.lastMoodEntry ? format(new Date(stats.lastMoodEntry.Date), 'MMM d') : 'Never'}</span>
+                                                        <span className="text-primary/80">Next: {stats.nextDue}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 text-primary animate-pulse">
+                                                        <span className="text-[8px]">Details</span>
+                                                        <ChevronRight className="h-3 w-3" />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="py-20 text-center space-y-3 opacity-30">
+                                                <Calendar className="h-10 w-10 mx-auto text-muted-foreground" />
+                                                <p className="text-[10px] font-black uppercase tracking-widest">Awaiting First Log</p>
                                             </div>
                                         )}
-
-                                        {/* Meta Footer */}
-                                        <div className="pt-2 border-t border-primary/5 flex justify-between items-center text-[9px] font-black uppercase tracking-widest">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-muted-foreground/60">Last: {stats.lastMoodEntry ? format(new Date(stats.lastMoodEntry.Date), 'MMM d, p') : 'Never'}</span>
-                                                <span className="text-primary/80">Next: {stats.nextDue}</span>
-                                            </div>
-                                            <History className="h-3 w-3 opacity-20" />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="py-16 text-center space-y-3 opacity-30">
-                                        <Calendar className="h-10 w-10 mx-auto text-muted-foreground" />
-                                        <p className="text-[10px] font-black uppercase tracking-widest">Awaiting First Log</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                                    </CardContent>
+                                </Card>
+                            </DialogTrigger>
+                            <UserDetailModal username={user.username} fullName={user.fullName} />
+                        </Dialog>
                     ) : null;
                 })}
             </div>
