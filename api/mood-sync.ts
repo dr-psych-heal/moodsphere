@@ -24,10 +24,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const dataSheet = doc.sheetsByTitle['MoodData'] || doc.sheetsByTitle['Mood entries'] || doc.sheetsByIndex[0];
         const userSheet = doc.sheetsByTitle['Users'];
-        const journalSheet = doc.sheetsByTitle['JournalData'] || doc.sheetsByTitle['JournalEntries'] || doc.sheetsByTitle['Journals'];
-        const thoughtRecordSheet = doc.sheetsByTitle['ThoughtRecordData'] || doc.sheetsByTitle['ThoughtRecords'] || doc.sheetsByTitle['CBT'];
-        const prescriptionSheet = doc.sheetsByTitle['MedicationPrescriptions'] || doc.sheetsByTitle['Prescriptions'] || doc.sheetsByTitle['Meds'];
-        const medLogSheet = doc.sheetsByTitle['MedicationLogs'] || doc.sheetsByTitle['MedLogs'] || doc.sheetsByTitle['MedicationHistory'];
+        const journalSheet = doc.sheetsByTitle['JournalData'] || doc.sheetsByTitle['JournalEntries'] || doc.sheetsByTitle['Journals'] || doc.sheetsByTitle['Journal'];
+        const thoughtRecordSheet = doc.sheetsByTitle['ThoughtRecordData'] || doc.sheetsByTitle['ThoughtRecords'] || doc.sheetsByTitle['CBT'] || doc.sheetsByTitle['ThoughtRecord'];
+        const prescriptionSheet = doc.sheetsByTitle['MedicationPrescriptions'] || doc.sheetsByTitle['Prescriptions'] || doc.sheetsByTitle['Prescription'] || doc.sheetsByTitle['Meds'];
+        const medLogSheet = doc.sheetsByTitle['MedicationLogs'] || doc.sheetsByTitle['MedLogs'] || doc.sheetsByTitle['MedicationHistory'] || doc.sheetsByTitle['MedicationLog'];
 
         const { action, username, password } = req.query;
 
@@ -303,18 +303,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'GET' && action === 'fetch_prescriptions' && prescriptionSheet) {
             const rows = await prescriptionSheet.getRows();
             const entries = rows
-                .filter(p => p.get('Username') === username)
+                .filter(p => (p.get('Username') || p.get('username')) === username)
                 .map(p => ({
-                    username: safeStr(p.get('Username')),
-                    Username: safeStr(p.get('Username')),
-                    medicationName: safeStr(p.get('medicationName') || p.get('MedicationName')),
-                    MedicationName: safeStr(p.get('medicationName') || p.get('MedicationName')),
-                    dosage: safeStr(p.get('dosage') || p.get('Dosage')),
-                    Dosage: safeStr(p.get('dosage') || p.get('Dosage')),
+                    username: safeStr(p.get('Username') || p.get('username')),
+                    Username: safeStr(p.get('Username') || p.get('username')),
+                    medicationName: safeStr(p.get('medicationName') || p.get('MedicationName') || p.get('Medication Name') || p.get('Name')),
+                    MedicationName: safeStr(p.get('medicationName') || p.get('MedicationName') || p.get('Medication Name') || p.get('Name')),
+                    dosage: safeStr(p.get('dosage') || p.get('Dosage') || p.get('Dosage Amount')),
+                    Dosage: safeStr(p.get('dosage') || p.get('Dosage') || p.get('Dosage Amount')),
                     status: safeStr(p.get('status') || p.get('Status') || 'Active'),
                     Status: safeStr(p.get('status') || p.get('Status') || 'Active'),
-                    schedule: safeStr(p.get('schedule') || p.get('Schedule')),
-                    Schedule: safeStr(p.get('schedule') || p.get('Schedule'))
+                    schedule: safeStr(p.get('schedule') || p.get('Schedule') || p.get('Frequency')),
+                    Schedule: safeStr(p.get('schedule') || p.get('Schedule') || p.get('Frequency'))
                 }));
             return res.status(200).json(entries);
         }
@@ -323,10 +323,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const data = req.body;
             await prescriptionSheet.addRow({
                 Username: data.Username || data.username,
+                username: data.Username || data.username,
                 MedicationName: data.medicationName || data.MedicationName,
+                medicationName: data.medicationName || data.MedicationName,
+                "Medication Name": data.medicationName || data.MedicationName,
                 Dosage: data.dosage || data.Dosage,
+                dosage: data.dosage || data.Dosage,
                 Schedule: data.schedule || data.Schedule || '',
-                Status: data.status || data.Status || 'Active'
+                schedule: data.schedule || data.Schedule || '',
+                Status: data.status || data.Status || 'Active',
+                status: data.status || data.Status || 'Active'
             });
             return res.status(200).json({ success: true });
         }
@@ -367,8 +373,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const data = req.body;
             await medLogSheet.addRow({
                 Username: data.Username || data.username,
+                username: data.Username || data.username,
                 MedicationName: data.medicationName || data.MedicationName,
-                Timestamp: data.timestamp || data.Timestamp || new Date().toISOString()
+                medicationName: data.medicationName || data.MedicationName,
+                "Medication Name": data.medicationName || data.MedicationName,
+                Timestamp: data.timestamp || data.Timestamp || new Date().toISOString(),
+                timestamp: data.timestamp || data.Timestamp || new Date().toISOString()
             });
             return res.status(200).json({ success: true });
         }
