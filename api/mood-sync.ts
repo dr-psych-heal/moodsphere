@@ -153,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // --- HANDLE GET (EXISTING MOOD ENTRIES) ---
-        if (req.method === 'GET' && !action) {
+        if (req.method === 'GET' && (!action || action === 'fetch_moods')) {
             if (!username) return res.status(400).json({ error: 'Username required' });
 
             const rows = await dataSheet.getRows();
@@ -161,7 +161,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .filter(row => row.get('Username') === username)
                 .map(row => ({
                     Username: row.get('Username'),
+                    username: row.get('Username'), // Alias
                     Date: row.get('Date'),
+                    date: row.get('Date'), // Alias
                     "Overall Score": row.get('Overall Score'),
                     "Q1: Overall Mood": row.get('Q1: Overall Mood'),
                     "Q2: Stress": row.get('Q2: Stress'),
@@ -174,48 +176,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // --- HANDLE JOURNAL ACTIONS ---
-        if (action === 'fetch_journal' && journalSheet) {
+        if ((action === 'fetch_journal' || action === 'fetch_journals') && journalSheet) {
             const rows = await journalSheet.getRows();
             const entries = rows
                 .filter(r => r.get('Username') === username)
                 .map(r => ({
                     username: r.get('Username'),
+                    Username: r.get('Username'), // PascalCase alias for mobile
                     date: r.get('Date'),
+                    Date: r.get('Date'), // PascalCase alias for mobile
                     content: r.get('Content'),
-                    dayNumber: r.get('DayNumber')
+                    Content: r.get('Content'), // PascalCase alias for mobile
+                    dayNumber: r.get('DayNumber'),
+                    DayNumber: r.get('DayNumber') // PascalCase alias for mobile
                 }));
             return res.status(200).json(entries);
         }
 
         if (req.method === 'POST' && action === 'save_journal' && journalSheet) {
-            await journalSheet.addRow(req.body);
+            const data = req.body;
+            await journalSheet.addRow({
+                Username: data.Username || data.username,
+                Date: data.Date || data.date,
+                Content: data.Content || data.content,
+                DayNumber: data.DayNumber || data.dayNumber
+            });
             return res.status(200).json({ success: true });
         }
 
         // --- HANDLE THOUGHT RECORD ACTIONS ---
-        if (action === 'fetch_thought_records' && thoughtRecordSheet) {
+        if ((action === 'fetch_thought_records' || action === 'fetch_thought_record') && thoughtRecordSheet) {
             const rows = await thoughtRecordSheet.getRows();
             const entries = rows
                 .filter(r => r.get('Username') === username)
                 .map(r => ({
                     username: r.get('Username'),
+                    Username: r.get('Username'),
                     date: r.get('Date'),
+                    Date: r.get('Date'),
                     dayNumber: r.get('DayNumber'),
+                    DayNumber: r.get('DayNumber'),
                     situation: r.get('Situation'),
+                    Situation: r.get('Situation'),
                     emotion: r.get('Emotion'),
+                    Emotion: r.get('Emotion'),
                     intensityScore: r.get('IntensityScore'),
+                    IntensityScore: r.get('IntensityScore'),
                     automaticThought: r.get('AutomaticThought'),
+                    AutomaticThought: r.get('AutomaticThought'),
                     evidenceFor: r.get('EvidenceFor'),
+                    EvidenceFor: r.get('EvidenceFor'),
                     evidenceAgainst: r.get('EvidenceAgainst'),
+                    EvidenceAgainst: r.get('EvidenceAgainst'),
                     alternativeThought: r.get('AlternativeThought'),
+                    AlternativeThought: r.get('AlternativeThought'),
                     behaviorResponse: r.get('BehaviorResponse'),
-                    emotionAfterIntensity: r.get('EmotionAfterIntensity')
+                    BehaviorResponse: r.get('BehaviorResponse'),
+                    emotionAfterIntensity: r.get('EmotionAfterIntensity'),
+                    EmotionAfterIntensity: r.get('EmotionAfterIntensity')
                 }));
             return res.status(200).json(entries);
         }
 
         if (req.method === 'POST' && action === 'save_thought_record' && thoughtRecordSheet) {
-            await thoughtRecordSheet.addRow(req.body);
+            const data = req.body;
+            await thoughtRecordSheet.addRow({
+                Username: data.Username || data.username,
+                Date: data.Date || data.date,
+                DayNumber: data.DayNumber || data.dayNumber,
+                Situation: data.Situation || data.situation,
+                Emotion: data.Emotion || data.emotion,
+                IntensityScore: data.IntensityScore || data.intensityScore,
+                AutomaticThought: data.AutomaticThought || data.automaticThought,
+                EvidenceFor: data.EvidenceFor || data.evidenceFor,
+                EvidenceAgainst: data.EvidenceAgainst || data.evidenceAgainst,
+                AlternativeThought: data.AlternativeThought || data.alternativeThought,
+                BehaviorResponse: data.BehaviorResponse || data.behaviorResponse,
+                EmotionAfterIntensity: data.EmotionAfterIntensity || data.emotionAfterIntensity
+            });
             return res.status(200).json({ success: true });
         }
 
@@ -226,33 +264,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 .filter(p => p.get('Username') === username)
                 .map(p => ({
                     username: p.get('Username'),
+                    Username: p.get('Username'),
                     medicationName: p.get('medicationName') || p.get('MedicationName'),
+                    MedicationName: p.get('medicationName') || p.get('MedicationName'),
                     dosage: p.get('dosage') || p.get('Dosage'),
+                    Dosage: p.get('dosage') || p.get('Dosage'),
                     status: p.get('status') || p.get('Status') || 'Active',
-                    schedule: p.get('schedule') || p.get('Schedule')
+                    Status: p.get('status') || p.get('Status') || 'Active',
+                    schedule: p.get('schedule') || p.get('Schedule'),
+                    Schedule: p.get('schedule') || p.get('Schedule')
                 }));
             return res.status(200).json(entries);
         }
 
         if (req.method === 'POST' && action === 'add_prescription' && prescriptionSheet) {
             const data = req.body;
-            // Payload should match: { Username, medicationName, dosage, Status/Schedule }
             await prescriptionSheet.addRow({
-                Username: data.username,
-                medicationName: data.medicationName,
-                dosage: data.dosage,
-                schedule: data.schedule || '',
-                Status: data.status || 'Active'
+                Username: data.Username || data.username,
+                medicationName: data.medicationName || data.MedicationName,
+                dosage: data.dosage || data.Dosage,
+                schedule: data.schedule || data.Schedule || '',
+                Status: data.status || data.Status || 'Active'
             });
             return res.status(200).json({ success: true });
         }
 
         if (req.method === 'POST' && action === 'delete_prescription' && prescriptionSheet) {
-            const { username, medicationName } = req.body;
+            const data = req.body;
+            const uName = data.Username || data.username;
+            const mName = data.medicationName || data.MedicationName;
             const rows = await prescriptionSheet.getRows();
             const rowToDelete = rows.find(r =>
-                r.get('Username') === username &&
-                (r.get('medicationName') === medicationName || r.get('MedicationName') === medicationName)
+                r.get('Username') === uName &&
+                (r.get('medicationName') === mName || r.get('MedicationName') === mName)
             );
 
             if (rowToDelete) {
@@ -262,14 +306,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(404).json({ error: 'Prescription not found' });
         }
 
-        if (req.method === 'GET' && action === 'fetch_med_logs' && medLogSheet) {
+        if (req.method === 'GET' && (action === 'fetch_med_logs' || action === 'fetch_medication_logs') && medLogSheet) {
             const rows = await medLogSheet.getRows();
             const entries = rows
                 .filter(l => l.get('Username') === username)
                 .map(l => ({
                     username: l.get('Username'),
+                    Username: l.get('Username'),
                     medicationName: l.get('medicationName') || l.get('MedicationName') || '',
-                    timestamp: l.get('Timestamp') || l.get('timestamp') || new Date().toISOString()
+                    MedicationName: l.get('medicationName') || l.get('MedicationName') || '',
+                    timestamp: l.get('Timestamp') || l.get('timestamp') || new Date().toISOString(),
+                    Timestamp: l.get('Timestamp') || l.get('timestamp') || new Date().toISOString()
                 }));
             return res.status(200).json(entries);
         }
@@ -277,9 +324,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'POST' && action === 'save_med_log' && medLogSheet) {
             const data = req.body;
             await medLogSheet.addRow({
-                Username: data.username,
-                medicationName: data.medicationName,
-                Timestamp: data.timestamp || new Date().toISOString()
+                Username: data.Username || data.username,
+                medicationName: data.medicationName || data.MedicationName,
+                Timestamp: data.timestamp || data.Timestamp || new Date().toISOString()
             });
             return res.status(200).json({ success: true });
         }
