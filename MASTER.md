@@ -22,12 +22,16 @@ Styles are managed in [tailwind.config.ts](file:///e:/Code%20projects/github%20p
 - **Medication Text**: Update the "No Medications Prescribed" fallback in [MedicationTracker.tsx](file:///e:/Code%20projects/github%20projects/mood-sphere-report/src/components/MedicationTracker.tsx).
 
 ## 5. API Actions & Synchronization
-Backend logic in [api/mood-sync.ts](file:///e:/Code%20projects/github%20projects/mood-sphere-report/api/mood-sync.ts):
-- `action=fetch_prescriptions`: [FIXED] Fetches active prescriptions. Uses `medicationName`, `dosage`, `schedule`.
+Backend logic in [api/mood-sync.ts](file:///e:/Code%20projects/github%20projects/mood-sphere-report/api/mood-sync.ts). See [BACKEND_SYNC_API.md](file:///e:/Code%20projects/github%20projects/mood-sphere-report/BACKEND_SYNC_API.md) for full protocol details.
+
+- **Dual-Casing Strategy**: The API returns both `camelCase` (Web) and `PascalCase` (Mobile) keys simultaneously. This ensures the Mobile app's strict models are satisfied without breaking the Web app's existing logic.
+- `action=fetch_moods`: [PASCAL-COMPAT] Fetches all mood logs.
+- `action=fetch_journals`: [PASCAL-COMPAT] Fetches all journal entries.
+- `action=fetch_prescriptions`: Fetches active prescriptions.
 - `action=add_prescription`: Admin tool to assign new medication records.
-- `action=delete_prescription`: [NEW] Admin tool to remove active prescriptions.
+- `action=delete_prescription`: Admin tool to remove active prescriptions.
 - `action=save_med_log`: Records daily intake with timestamping.
-- `action=fetch_med_logs`: [NEW] Pulls a user's chronological intake history.
+- `action=fetch_med_logs`: Pulls a user's chronological intake history.
 - `action=admin_data`: Aggregates all clinical metrics. Enforces patient isolation by **AssociatedPsychiatrist**.
 
 > [!TIP]
