@@ -92,11 +92,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return isSuperAdmin || assignedDoc === username;
             });
 
-            const authorizedUsernames = new Set(authorizedPatients.map(u => u.get('Username') || u.get('username')));
+            const authorizedUsernames = new Set(authorizedPatients.map(u => safeStr(u.get('Username') || u.get('username')).toLowerCase()));
 
             // Filter all data packets
             const filteredEntries = allRows
-                .filter(row => authorizedUsernames.has(row.get('Username') || row.get('username')))
+                .filter(row => authorizedUsernames.has(safeStr(row.get('Username') || row.get('username')).toLowerCase()))
                 .map(row => ({
                     Username: safeStr(row.get('Username') || row.get('username')),
                     username: safeStr(row.get('Username') || row.get('username')),
@@ -112,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }));
 
             const journalData = journals
-                .filter(r => authorizedUsernames.has(r.get('Username') || r.get('username')))
+                .filter(r => authorizedUsernames.has(safeStr(r.get('Username') || r.get('username')).toLowerCase()))
                 .map(r => ({
                     username: safeStr(r.get('Username') || r.get('username')),
                     date: safeStr(r.get('Date') || r.get('date') || new Date().toISOString()),
@@ -120,7 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     dayNumber: safeInt(r.get('DayNumber') || r.get('dayNumber'))
                 }));
             const thoughtData = thoughts
-                .filter(r => authorizedUsernames.has(r.get('Username') || r.get('username')))
+                .filter(r => authorizedUsernames.has(safeStr(r.get('Username') || r.get('username')).toLowerCase()))
                 .map(r => ({
                     username: safeStr(r.get('Username') || r.get('username')),
                     date: safeStr(r.get('Date') || r.get('date') || new Date().toISOString()),
@@ -137,7 +137,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }));
 
             const prescriptionData = (prescriptions || [])
-                .filter(p => authorizedUsernames.has(p.get('Username') || p.get('username')))
+                .filter(p => authorizedUsernames.has(safeStr(p.get('Username') || p.get('username')).toLowerCase()))
                 .map(p => ({
                     username: safeStr(p.get('Username') || p.get('username')),
                     medicationName: safeStr(p.get('medicationName') || p.get('MedicationName') || p.get('Medication Name') || p.get('Name')),
@@ -147,7 +147,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }));
 
             const medLogData = logs
-                .filter(l => authorizedUsernames.has(l.get('Username') || l.get('username')))
+                .filter(l => authorizedUsernames.has(safeStr(l.get('Username') || l.get('username')).toLowerCase()))
                 .map(l => ({
                     username: safeStr(l.get('Username') || l.get('username')),
                     medicationName: safeStr(l.get('medicationName') || l.get('MedicationName') || l.get('Medication Name')),
@@ -156,11 +156,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             const patients = authorizedPatients.map(u => {
                 const uName = safeStr(u.get('Username') || u.get('username'));
-                const userEntries = filteredEntries.filter(e => e.Username === uName);
-                const userJournals = journalData.filter(j => j.username === uName);
-                const userThoughts = thoughtData.filter(t => t.username === uName);
-                const userLogs = medLogData.filter(l => l.username === uName);
-                const userMeds = prescriptions.filter(p => safeStr(p.get('Username') || p.get('username')) === uName);
+                const uNameLower = uName.toLowerCase();
+                const userEntries = filteredEntries.filter(e => e.username.toLowerCase() === uNameLower);
+                const userJournals = journalData.filter(j => j.username.toLowerCase() === uNameLower);
+                const userThoughts = thoughtData.filter(t => t.username.toLowerCase() === uNameLower);
+                const userLogs = medLogData.filter(l => l.username.toLowerCase() === uNameLower);
+                const userMeds = prescriptionData.filter(p => p.username.toLowerCase() === uNameLower);
 
                 // Sort entries by date descending to find latest mood score
                 const sortedEntries = [...userEntries].sort((a, b) =>
