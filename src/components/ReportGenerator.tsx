@@ -154,20 +154,20 @@ This automated report is meant to supplement, not replace, professional mental h
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Mood Health Report</h2>
+        <h2 className="text-base font-bold text-foreground">Mood Health Report</h2>
         <div className="flex items-center gap-2">
-          <Button 
-            onClick={generateReport} 
-            variant="outline" 
-            size="sm" 
+          <Button
+            onClick={generateReport}
+            variant="outline"
+            size="sm"
             disabled={isGenerating}
           >
             <FileText className="mr-2 h-4 w-4" />
             {isGenerating ? 'Generating...' : 'Refresh Report'}
           </Button>
-          <Button 
+          <Button
             onClick={downloadReport}
             variant="outline"
             size="sm"
@@ -177,55 +177,55 @@ This automated report is meant to supplement, not replace, professional mental h
           </Button>
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+        <Card className="p-3 bg-muted border border-border">
           <div className="text-center">
-            <h3 className="text-sm text-gray-500 dark:text-gray-400">Entries</h3>
-            <p className="text-3xl font-bold text-primary">{entries.length}</p>
+            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Entries</h3>
+            <p className="text-2xl font-bold text-foreground">{entries.length}</p>
           </div>
         </Card>
-        <Card className="p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+        <Card className="p-3 bg-muted border border-border">
           <div className="text-center">
-            <h3 className="text-sm text-gray-500 dark:text-gray-400">Avg Score</h3>
-            <p className="text-3xl font-bold text-primary">
+            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Avg Score</h3>
+            <p className="text-2xl font-bold text-foreground">
               {(entries.reduce((sum, entry) => sum + entry.overallScore, 0) / entries.length).toFixed(1)}
             </p>
           </div>
         </Card>
-        <Card className="p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+        <Card className="p-3 bg-muted border border-border">
           <div className="text-center">
-            <h3 className="text-sm text-gray-500 dark:text-gray-400">Latest Entry</h3>
-            <p className="text-3xl font-bold text-primary">
-              <Calendar className="h-6 w-6 inline-block" /> {' '}
+            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Latest Entry</h3>
+            <p className="text-2xl font-bold text-foreground">
+              <Calendar className="h-5 w-5 inline-block" /> {' '}
               {new Date(entries[entries.length-1].date).toLocaleDateString()}
             </p>
           </div>
         </Card>
       </div>
-      
+
       {/* Graph of mood over time */}
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-2">Mood Trend</h3>
-        <div className="p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg">
+      <div className="mb-5">
+        <h3 className="text-sm font-semibold mb-2 text-foreground">Mood Trend</h3>
+        <div className="p-3 bg-card rounded-lg border border-border">
           <MoodGraph data={entries} height={200} />
         </div>
       </div>
-      
+
       {/* Trigger frequency visualization */}
       {getTriggerAnalysis().length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-2">Common Triggers</h3>
-          <div className="p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg">
-            <div className="space-y-3">
+        <div className="mb-5">
+          <h3 className="text-sm font-semibold mb-2 text-foreground">Common Triggers</h3>
+          <div className="p-3 bg-card rounded-lg border border-border">
+            <div className="space-y-2.5">
               {getTriggerAnalysis().slice(0, 5).map(({trigger, percentage}) => (
                 <div key={trigger} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span>{trigger}</span>
-                    <span className="font-medium">{percentage}%</span>
+                    <span className="text-foreground">{trigger}</span>
+                    <span className="font-semibold text-muted-foreground">{percentage}%</span>
                   </div>
-                  <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div 
+                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
                       className="h-full bg-primary rounded-full transition-all duration-300"
                       style={{width: `${percentage}%`}}
                     ></div>
@@ -236,12 +236,12 @@ This automated report is meant to supplement, not replace, professional mental h
           </div>
         </div>
       )}
-      
+
       {/* The report text */}
-      <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-4 shadow-sm">
-        <h3 className="text-lg font-medium mb-2">Full Report</h3>
-        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-md">
-          <pre className="whitespace-pre-wrap text-sm font-mono text-gray-700 dark:text-gray-300">
+      <div className="bg-card rounded-lg p-4 border border-border">
+        <h3 className="text-sm font-semibold mb-2 text-foreground">Full Report</h3>
+        <div className="bg-muted p-3 rounded-md">
+          <pre className="whitespace-pre-wrap text-sm font-mono text-foreground/80">
             {report}
           </pre>
         </div>

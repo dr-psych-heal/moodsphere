@@ -50,17 +50,17 @@ const MoodQuestionnaire: React.FC<MoodQuestionnaireProps> = ({ answers, onAnswer
 
   return (
     <div className="w-full mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h2 className="text-xl md:text-2xl font-bold text-primary">Track Your Mood</h2>
-        <div className="text-sm px-4 py-2 bg-white/40 dark:bg-gray-800/40 rounded-full border border-primary/5 text-muted-foreground shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+        <h2 className="text-lg md:text-xl font-bold text-foreground">Track Your Mood</h2>
+        <div className="text-xs px-3 py-1.5 bg-muted rounded-md border border-border text-muted-foreground font-medium">
           {format(currentDate, 'EEEE, MMMM d, yyyy')} at {format(currentDate, 'h:mm a')}
         </div>
       </div>
 
       {/* 3/2 Split Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8 items-start">
         {/* Left Column: 3 Questions */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {moodQuestions.slice(0, 3).map((question, index) => (
             <MoodSlider
               key={question.id}
@@ -74,7 +74,7 @@ const MoodQuestionnaire: React.FC<MoodQuestionnaireProps> = ({ answers, onAnswer
         </div>
 
         {/* Right Column: 2 Questions */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {moodQuestions.slice(3).map((question, index) => (
             <MoodSlider
               key={question.id}

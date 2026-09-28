@@ -25,13 +25,13 @@ const EmotionalJournal: React.FC<EmotionalJournalProps> = ({ entries, onSave, is
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex flex-col md:flex-row gap-8">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col md:flex-row gap-6">
                 {/* Input Section */}
-                <Card className="w-full md:w-5/12 border-primary/10 shadow-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md h-fit md:sticky md:top-32 mb-8 md:mb-0">
+                <Card className="w-full md:w-5/12 border-border bg-card h-fit md:sticky md:top-32 mb-6 md:mb-0">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-primary">
-                            <PenTool className="h-5 w-5" /> Express Yourself
+                        <CardTitle className="flex items-center gap-2 text-foreground text-base font-bold">
+                            <PenTool className="h-4 w-4 text-primary" /> Express Yourself
                         </CardTitle>
                         <CardDescription>
                             Write down your emotional responses or any thoughts important to you.
@@ -41,18 +41,18 @@ const EmotionalJournal: React.FC<EmotionalJournalProps> = ({ entries, onSave, is
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <Textarea
                                 placeholder="How are you feeling right now? What's on your mind?"
-                                className="min-h-[200px] bg-white/50 dark:bg-gray-900/50 border-primary/5 focus:border-primary/20 transition-all text-base leading-relaxed"
+                                className="min-h-[180px] text-base leading-relaxed"
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                             />
                             <Button
                                 type="submit"
-                                className="w-full py-6 text-lg font-bold"
+                                className="w-full py-5 text-sm font-bold"
                                 disabled={isSubmitting || !content.trim()}
                             >
                                 {isSubmitting ? 'Saving...' : (
                                     <>
-                                        <Send className="mr-2 h-5 w-5" /> Save Entry
+                                        <Send className="mr-2 h-4 w-4" /> Save Entry
                                     </>
                                 )}
                             </Button>
@@ -61,42 +61,42 @@ const EmotionalJournal: React.FC<EmotionalJournalProps> = ({ entries, onSave, is
                 </Card>
 
                 {/* History Section */}
-                <div className="w-full md:w-7/12 space-y-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold text-primary flex items-center gap-2">
-                            <History className="h-5 w-5" /> Your Journal History
+                <div className="w-full md:w-7/12 space-y-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                            <History className="h-4 w-4 text-muted-foreground" /> Your Journal History
                         </h3>
-                        <Badge variant="outline" className="bg-primary/5 border-primary/10">
+                        <Badge variant="outline" className="text-[10px] font-semibold">
                             {entries.length} Entries
                         </Badge>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {entries.length > 0 ? (
                             [...entries].reverse().map((entry, index) => {
                                 const actualIndex = entries.length - index;
                                 return (
-                                    <Card key={index} className="border-primary/5 shadow-md bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm group hover:border-primary/20 transition-all duration-300">
-                                        <CardContent className="pt-6">
-                                            <div className="flex justify-between items-start mb-4">
+                                    <Card key={index} className="border-border bg-card group hover:border-primary/30 transition-colors">
+                                        <CardContent className="pt-5">
+                                            <div className="flex justify-between items-start mb-3">
                                                 <div className="flex items-center gap-2">
-                                                    <CheckCircle2 className="h-4 w-4 text-primary/60" />
-                                                    <span className="font-black text-primary/80 uppercase tracking-tighter text-sm">
+                                                    <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <span className="font-semibold text-muted-foreground uppercase tracking-tight text-xs">
                                                         Entry #{actualIndex}
                                                     </span>
                                                 </div>
-                                                <span className="text-xs text-muted-foreground font-medium italic">
+                                                <span className="text-[10px] text-muted-foreground font-medium">
                                                     {(() => {
                                                         try {
                                                             const d = new Date(entry.date);
-                                                            return isNaN(d.getTime()) ? 'N/A' : format(d, 'MMMM d, yyyy • h:mm a');
+                                                            return isNaN(d.getTime()) ? 'N/A' : format(d, 'MMMM d, yyyy · h:mm a');
                                                         } catch (e) {
                                                             return 'N/A';
                                                         }
                                                     })()}
                                                 </span>
                                             </div>
-                                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-medium font-serif bg-primary/5 p-4 rounded-xl border border-primary/5">
+                                            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap bg-muted p-3 rounded-md border border-border">
                                                 "{entry.content}"
                                             </p>
                                         </CardContent>
@@ -104,9 +104,9 @@ const EmotionalJournal: React.FC<EmotionalJournalProps> = ({ entries, onSave, is
                                 );
                             })
                         ) : (
-                            <div className="text-center py-20 bg-white/20 dark:bg-gray-800/20 rounded-3xl border border-dashed border-primary/20">
-                                <BookOpen className="h-12 w-12 mx-auto text-primary/20 mb-4" />
-                                <p className="text-muted-foreground italic font-medium">Your journaling journey begins with your first entry.</p>
+                            <div className="text-center py-16 border border-dashed border-border rounded-lg">
+                                <BookOpen className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                                <p className="text-muted-foreground text-sm">Your journaling journey begins with your first entry.</p>
                             </div>
                         )}
                     </div>

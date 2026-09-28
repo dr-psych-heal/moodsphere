@@ -34,17 +34,17 @@ const MoodSlider: React.FC<MoodSliderProps> = ({
   };
 
   return (
-    <div className="w-full p-4 md:p-6 rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow border border-primary/10">
-      <div className="flex justify-between items-center mb-4 md:mb-6">
+    <div className="w-full p-4 md:p-5 rounded-lg bg-card border border-border">
+      <div className="flex justify-between items-center mb-4 md:mb-5">
         <div className="flex items-center gap-2">
-          <h3 className="text-base md:text-lg font-medium">{question}</h3>
+          <h3 className="text-sm md:text-base font-semibold text-foreground">{question}</h3>
           {description && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help opacity-60 hover:opacity-100 transition-opacity" />
                 </TooltipTrigger>
-                <TooltipContent className="bg-white dark:bg-gray-900 border-primary/10 shadow-xl p-3">
+                <TooltipContent className="p-3">
                   <p className="max-w-xs text-sm leading-relaxed">{description}</p>
                 </TooltipContent>
               </Tooltip>
@@ -55,10 +55,10 @@ const MoodSlider: React.FC<MoodSliderProps> = ({
           variant="ghost"
           size="sm"
           onClick={toggleInterface}
-          className="h-8 w-8 p-0 rounded-full"
+          className="h-7 w-7 p-0 rounded-md"
           title={useGradient ? "Switch to slider" : "Switch to emoji selector"}
         >
-          {useGradient ? <SlidersHorizontal size={16} /> : <Smile size={16} />}
+          {useGradient ? <SlidersHorizontal size={14} /> : <Smile size={14} />}
         </Button>
       </div>
 
@@ -69,7 +69,7 @@ const MoodSlider: React.FC<MoodSliderProps> = ({
           questionType={questionType}
         />
       ) : (
-        <div className="flex flex-col items-center gap-4 md:gap-6 mb-3">
+        <div className="flex flex-col items-center gap-4 md:gap-5 mb-2">
           <MoodEmoji score={value} className="animate-float" />
           <Slider
             value={[value]}
@@ -79,9 +79,9 @@ const MoodSlider: React.FC<MoodSliderProps> = ({
             onValueChange={(vals) => onChange(vals[0])}
             className="w-full max-w-md mx-auto"
           />
-          <div className="flex justify-between w-full max-w-md mx-auto text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex justify-between w-full max-w-md mx-auto text-sm text-muted-foreground">
             <span>Low</span>
-            <span className="font-semibold text-primary">{value}/10</span>
+            <span className="font-semibold text-foreground">{value}/10</span>
             <span>High</span>
           </div>
         </div>

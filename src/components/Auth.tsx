@@ -42,18 +42,18 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticated }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent to-white dark:from-primary/20 dark:to-background p-4">
-      <Card className="w-full max-w-md border-primary/10 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md border-border shadow-sm bg-card">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <Brain className="w-6 h-6 text-primary" />
+          <div className="mx-auto w-10 h-10 bg-primary/10 rounded-md flex items-center justify-center mb-4">
+            <Brain className="w-5 h-5 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">Mood Sphere Access</CardTitle>
+          <CardTitle className="text-xl font-bold text-foreground">Mood Sphere Access</CardTitle>
           <CardDescription>Sign in to your emotional health dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="space-y-2">
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -62,7 +62,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticated }) => {
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-white/50 dark:bg-gray-900/50 pl-10"
+                    className="pl-10"
                     required
                   />
                 </div>
@@ -73,7 +73,6 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticated }) => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/50 dark:bg-gray-900/50"
                   required
                 />
               </div>

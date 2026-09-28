@@ -59,9 +59,9 @@ const TriggerSelector: React.FC<TriggerSelectorProps> = ({
   };
 
   return (
-    <div className="w-full p-4 md:p-6 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-      <h3 className="text-base md:text-lg font-medium mb-4">Common Triggers</h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+    <div className="w-full p-4 md:p-5 rounded-lg bg-card border border-border">
+      <h3 className="text-sm md:text-base font-semibold text-foreground mb-3">Common Triggers</h3>
+      <p className="text-sm text-muted-foreground mb-4">
         Select any triggers you've experienced today:
       </p>
 
@@ -70,16 +70,14 @@ const TriggerSelector: React.FC<TriggerSelectorProps> = ({
           {triggers.map(trigger => (
             <Tooltip key={trigger}>
               <TooltipTrigger asChild>
-                <div
-                  className="px-3 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary/20 text-sm flex items-center gap-1 cursor-help"
-                >
+                <div className="px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium flex items-center gap-1 cursor-help">
                   {trigger}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleToggleTrigger(trigger);
                     }}
-                    className="ml-1 hover:text-destructive"
+                    className="ml-0.5 hover:text-destructive"
                   >
                     ×
                   </button>
@@ -92,7 +90,7 @@ const TriggerSelector: React.FC<TriggerSelectorProps> = ({
           ))}
         </TooltipProvider>
         {triggers.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 italic">No triggers selected</p>
+          <p className="text-sm text-muted-foreground">No triggers selected</p>
         )}
       </div>
 

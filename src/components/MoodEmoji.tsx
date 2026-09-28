@@ -16,7 +16,6 @@ const MoodEmoji: React.FC<MoodEmojiProps> = ({
   type = 'general'
 }) => {
   const getMoodInfo = (score: number, type: string) => {
-    // Base mood info with standard emojis
     if (score >= 8) {
       return { icon: <Laugh size={size} className="text-mood-great" />, label: 'Great' };
     } else if (score >= 6) {
@@ -34,10 +33,10 @@ const MoodEmoji: React.FC<MoodEmojiProps> = ({
 
   return (
     <div className={`flex flex-col items-center gap-1 ${className}`}>
-      <div className="transition-all duration-300 hover:scale-110">
+      <div className="transition-all duration-200">
         {moodInfo.icon}
       </div>
-      <span className="text-sm font-medium text-primary dark:text-foreground">{moodInfo.label}</span>
+      <span className="text-sm font-medium text-muted-foreground">{moodInfo.label}</span>
     </div>
   );
 };

@@ -19,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -26,11 +29,11 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#8B5CF6', // More vivid purple
+					DEFAULT: '#D4738A',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: '#7E69AB',
+					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
@@ -42,7 +45,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#E5DEFF', // Soft purple for light mode
+					DEFAULT: 'hsl(var(--accent))',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
@@ -64,14 +67,14 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				mood: {
-					great: '#4CAF50',
-					good: '#8BC34A',
-					okay: '#FFEB3B',
-					bad: '#FF9800',
-					terrible: '#F44336'
+					great: '#3D9A50',
+					good: '#7AA83E',
+					okay: '#C9A82D',
+					bad: '#D4782A',
+					terrible: '#C43E3E'
 				},
 				heart: {
-					400: '#FF5E94' // Pink color for satisfaction emojis
+					400: '#E8A0BF'
 				}
 			},
 			borderRadius: {
@@ -88,19 +91,14 @@ export default {
 					from: { height: 'var(--radix-accordion-content-height)' },
 					to: { height: '0' }
 				},
-				'pulse-light': {
-					'0%, 100%': { opacity: '1' },
-					'50%': { opacity: '0.7' }
-				},
 				'float': {
 					'0%, 100%': { transform: 'translateY(0)' },
-					'50%': { transform: 'translateY(-5px)' }
+					'50%': { transform: 'translateY(-3px)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-light': 'pulse-light 3s ease-in-out infinite',
 				'float': 'float 3s ease-in-out infinite'
 			}
 		}

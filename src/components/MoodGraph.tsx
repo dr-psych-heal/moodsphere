@@ -35,7 +35,7 @@ const MoodGraph: React.FC<MoodGraphProps> = ({
             <Line
               type="monotone"
               dataKey="score"
-              stroke="#9b87f5"
+              stroke="#D4738A"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}
@@ -48,10 +48,10 @@ const MoodGraph: React.FC<MoodGraphProps> = ({
 
   return (
     <div className={cn(
-      "w-full h-64 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md",
-      hideHeader && "p-0 bg-transparent shadow-none"
+      "w-full h-64 bg-card p-4 rounded-lg border border-border",
+      hideHeader && "p-0 bg-transparent border-none"
     )}>
-      {!hideHeader && <h3 className="text-lg font-medium mb-4">Your Mood History</h3>}
+      {!hideHeader && <h3 className="text-sm font-semibold mb-3 text-foreground">Your Mood History</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#333" : "#f0f0f0"} />
@@ -77,10 +77,10 @@ const MoodGraph: React.FC<MoodGraphProps> = ({
           <Line
             type="monotone"
             dataKey="score"
-            stroke="#9b87f5"
+            stroke="#D4738A"
             strokeWidth={2}
-            dot={{ stroke: '#7E69AB', strokeWidth: 2, r: 4, fill: isDark ? '#333' : '#fff' }}
-            activeDot={{ r: 6, stroke: '#9b87f5', strokeWidth: 2 }}
+            dot={{ stroke: '#D4738A', strokeWidth: 2, r: 4, fill: isDark ? '#1A1A1E' : '#fff' }}
+            activeDot={{ r: 6, stroke: '#D4738A', strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>
